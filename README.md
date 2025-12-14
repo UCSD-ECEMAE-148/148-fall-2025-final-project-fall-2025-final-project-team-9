@@ -40,7 +40,7 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
     * *Measure:* Use OAK-D stereo depth to determine distance to AprilTag (parking spots)
     * *Action:* Drive forward the distance determined by OAK-D measurement to appraoch parking spots. Use an iterative approach to get closer if the AprilTag is too far to determine distance. 
 
-## 4. System Architecture
+## System Architecture
 ### Node Descriptions
 * **`vision_node.py`**
     * **Inputs:**
@@ -72,7 +72,7 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
     * **Outputs:**
         * Motor power and steering PWM to the car. 
 
-## 5. Hardware & Embedded Systems
+## Hardware & Embedded Systems
 * **Compute Unit:** Raspberry Pi 5 running Rasperry Pi OS (Bookworm)
 * **Sensors:**
   * OAK-D Lite
@@ -91,7 +91,7 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
       * 2 Servos (steering + arm)
       * Car chassis
 
-## 6. Setup & Execution
+## Setup & Execution
 1. **Environment:** SSH to Raspberry Pi
    * `docker start container`
    * `docker exec -it container bash`
@@ -104,17 +104,76 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
 
 ***NOTE:*** Execution of this project's code requires using https://github.com/LiamBindle/PyVESC/blob/master/pyvesc/VESC/VESC.py with lines 40-43 removed.
 
-## 7. Demonstration Videos
+## Demonstration Videos
 
-* **Full Parking Maneuver:** https://drive.google.com/file/d/13skkytyhFNDIrWCEbx_Y8rJ3Qe-3wAON/view?usp=drive_link
-* **Sign Detection and Decision Making:** https://drive.google.com/file/d/129XeshiFcHtZDFLckgNlD_xzgmjZ26v2/view?usp=drive_link
-* **Obstacle Removal System:** https://drive.google.com/file/d/1NbXFlpDSn8gsvdqW_95T_S3DBBavCneX/view?usp=drive_link
+* **Park Right with No Sign:** https://drive.google.com/file/d/129XeshiFcHtZDFLckgNlD_xzgmjZ26v2/view?usp=drive_link
+* **Park Left with Sign:** https://drive.google.com/file/d/13skkytyhFNDIrWCEbx_Y8rJ3Qe-3wAON/view?usp=drive_link
+* **Park Right with Sign:** https://drive.google.com/file/d/1NbXFlpDSn8gsvdqW_95T_S3DBBavCneX/view?usp=drive_link
 
-## 8. Future Improvements
-* Fix implementation of sweeper arm and obstacle detection in vision node that was not completed.
-* Utillize LiDAR for parking spot, sign, and obstacle detection rather than stereo depth and RGB with color masks.
-* Park in all types of spots - slanted, perpendicular, reverse park, etc.
+## Challenges & Solutions
 
-## 9. Acknowledgments
+### 1. OAK-D Color Channel Format Mismatch
+* **The Issue:** The OAK-D camera outputs images in RGB format by default, but OpenCV's HSV color detection functions expect BGR format. This caused our red color mask to fail completely, preventing sign detection.
+* **The Solution:** We implemented a channel remapping step in our vision pipeline to convert RGB frames to BGR before HSV conversion, ensuring proper color detection.
+
+### 2. Inaccurate OAK-D Depth Measurements
+* **The Issue:** Raw depth values from the OAK-D stereo camera showed systematic errors that increased with distance, making precise parking distance measurements unreliable.
+* **The Solution:** We characterized the depth error by measuring known distances and created a correction curve. We applied linear compensation to depth measurements (depth_corrected = depth_raw × 0.9 + 0.1) to achieve centimeter-level accuracy.
+
+### 3. Unstable Depth Map Noise
+* **The Issue:** The stereo depth map contained significant noise and outliers, especially at tag boundaries, leading to inconsistent distance measurements when using simple averaging.
+* **The Solution:** Instead of averaging, we implemented a 9×9 region of interest (ROI) median filter over the AprilTag area. This robust statistic rejected outliers and provided stable depth estimates.
+
+### 4. AprilTag Detection Range Limitations
+* **The Issue:** The AprilTag was often too far from the camera to be reliably detected at the start of the parking sequence, preventing initial distance measurement.
+* **The Solution:** We implemented an iterative approach where the robot moves forward in small increments until the AprilTag becomes detectable, then proceeds with the full measurement and parking maneuver.
+
+### 5. Power Distribution Issues
+* **The Issue:** With the OAK-D Lite, Raspberry Pi 5, VESC, and servos all drawing power simultaneously, we experienced brownouts and unstable operation during high-current maneuvers.
+* **The Solution:** We added a dedicated DC-DC converter with sufficient current capacity and implemented proper power sequencing to ensure stable voltage during all operating conditions.
+
+### 6. ROS2 Service Timing Synchronization
+* **The Issue:** The vision node's service response sometimes arrived before depth processing was complete, causing the orchestrator to receive stale or invalid measurements.
+* **The Solution:** We implemented a callback-based synchronization system with proper service request validation, ensuring the orchestrator only proceeds when all sensor data is fresh and validated.
+
+## Future Improvements
+
+1. **Yaw Alignment Correction**
+   * **Current Limitation:** Any misalignment at the start (robot not parallel with parking spots) results in the same misalignment angle after parking.
+   * **Improvement:** Implement real-time yaw control using IMU data to correct misalignment during approach. This would make the final parallel parking pose less dependent on initial orientation variation.
+
+2. **Camera Calibration & 3D Pose Estimation**
+   * **Current Limitation:** Fitting a correction curve to OAK-D depth measurements is a band-aid solution.
+   * **Improvement:** Perform proper stereo camera intrinsic calibration and implement a Perspective-n-Point (PnP) solver using AprilTag corners to get more accurate 6DOF pose estimation.
+
+3. **Obstacle Removal Mechanism Redesign**
+   * **Current Limitation:** The rotary servo arm struggles to fully sweep objects out of the way due to its limited range of motion.
+   * **Improvement:** Replace the rotary sweeper with a linear pushing mechanism or design a multi-servo articulated arm that can lift and push obstacles more effectively.
+
+4. **Multi-Type Parking Capability**
+   * **Current Limitation:** Only supports parallel parking in two predetermined spots.
+   * **Improvement:** Extend the system to handle perpendicular and slanted parking spots (like standard parking lots) using LiDAR-based spot detection and more sophisticated path planning algorithms.
+
+5. **Hardware Acceleration Integration**
+   * **Current Limitation:** Vision processing runs entirely on the Raspberry Pi CPU, limiting frame rates and complexity.
+   * **Improvement:** Fully integrate an AI Hat to offload computer vision processing, allowing for higher frame rates and more complex detection models.
+
+6. **Improved Navigation Recovery**
+   * **Current Limitation:** The system lacks robust recovery behaviors when initial conditions are suboptimal.
+   * **Improvement:** Fine-tune the recovery behaviors to include backing up, spinning, or re-positioning when the robot gets stuck or when parking conditions are not ideal.
+
+7. **Vertical Camera Panning**
+   * **Current Limitation:** The camera only pans horizontally, limiting object tracking capability.
+   * **Improvement:** Add a vertical servo to allow the camera to track objects on the floor more effectively without losing them from the frame when getting close.
+
+8. **Enhanced 3D Mounting System**
+   * **Current Limitation:** Some components are mounted with temporary solutions.
+   * **Improvement:** Design custom 3D-printed mounts for all components (speaker, I2C extenders, DC/DC converters) to clean up wiring and improve mechanical stability.
+
+9. **Adaptive Parking Algorithms**
+   * **Current Limitation:** Uses fixed parking maneuvers regardless of environmental conditions.
+   * **Improvement:** Implement machine learning-based adaptive parking that can adjust trajectories based on real-time obstacle detection and varying parking spot dimensions.
+
+## Acknowledgments
 * Dr. Jack Silberman, Winston Chou
 * University of California, San Diego - MAE/ECE148 Course Staff
