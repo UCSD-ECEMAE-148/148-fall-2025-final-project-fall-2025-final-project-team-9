@@ -95,11 +95,13 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
    * `docker start container`
    * `docker exec -it container bash`
    * `source_ros2`
-3. **Build:**
+2. **Build:**
    * `cd home/projects/ros2_ws/src/parking_bot`
    * `colcon build --packages-select parking_bot`
    * `source ~/ros2_ws/install/setup.bash`
-5. **Launch:** `ros2 launch parking_bot parking.launch.py`
+3. **Launch:** `ros2 launch parking_bot parking.launch.py`
+
+***NOTE:*** Execution of this project's code requires using https://github.com/LiamBindle/PyVESC/blob/master/pyvesc/VESC/VESC.py with lines 40-43 removed.
 
 ## 7. Future Improvements
 * Fix implementation of sweeper arm and obstacle detection in vision node that was not completed.
