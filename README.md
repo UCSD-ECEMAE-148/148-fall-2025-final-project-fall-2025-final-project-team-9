@@ -91,9 +91,15 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
       * Car chassis
 
 ## 6. Setup & Execution
-1. **Environment:** `source ~/ros2_ws/install/setup.bash`
-2. **Build:** `colcon build --packages-select parking_bot`
-3. **Launch:** `ros2 launch parking_bot parking.launch.py`
+1. **Environment:** SSH to Raspberry Pi
+   * `docker start container`
+   * `docker exec -it container bash`
+   * `source_ros2`
+3. **Build:**
+   * `cd home/projects/ros2_ws/src/parking_bot`
+   * `colcon build --packages-select parking_bot`
+   * `source ~/ros2_ws/install/setup.bash`
+5. **Launch:** `ros2 launch parking_bot parking.launch.py`
 
 ## 7. Future Improvements
 * Fix implementation of sweeper arm and obstacle detection in vision node that was not completed.
