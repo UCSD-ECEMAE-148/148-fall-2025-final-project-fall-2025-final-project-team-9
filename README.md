@@ -1,27 +1,32 @@
-# 148-fall-2025-final-project-fall-2025-final-project-team-9
-148-fall-2025-final-project-fall-2025-final-project-team-9 created by GitHub Classroom
-# Parallel Parker with Sign Identification and Obstacle Remover
+#MAE148 Fall 2025 - Team 9 - Smart Parallel Parking Robot
+MAE148 Fall 2025 - Team 9 - Smart Parallel Parking Robot created by GitHub Classroom
+# Parallel Parking Car with Sign Identification and Obstacle Remover
 
 ### Team Members
 * **Trew Hoffman** - Mechanical Engineering: Software - Class of 2026
-* **[Name]** - [Major/Role] - [Class Year]
-* **[Name]** - [Major/Role] - [Class Year]
+* **Manan Tuteja** - Aerospace Engineering: Hardware - Class of 2026
+* **Terri Tai** - Computer Engineering - Class of 2025
 * **Owen Hanenian** - Mechanical Engineering: Hardware - Class of 2026
 
 ---
 
 ## Overview
-[Provide a high-level summary of the project. What is the goal? What problem are you solving? Briefly mention the core technology stack.]
+This project implements an autonomous parallel-parking robot that identifies which of two parallel parking spots is available and executes a full parking maneuver accordingly. The robot uses a vision-based decision pipeline, detecting no-parking signs, measuring depth to an AprilTag, and chooses the correct side to park.
+
+The full system runs on ROS2, uses an OAK-D Lite for stereo depth + RGB vision, controls the car through a custom Hardware Abstraction Layer (HAL) connected to a VESC, and includes a servo-driven sweeper mechanism for obstacle removal.
+
+The design intentionally follows a “Look → Measure → Execute” architecture, ensuring that every parking action is informed by sensor data.
 
 ## Abstract
-Our goal was to have the car traveling on a straight path, with parking spots parallel to it's path (one on it's left, one on 
-it's right). Based on the occupancy of these spots (using a "No Parking" sign), the car decides which spot is open and parks in that spot using a "Look, Measure, then Execute" type of strategy. 
-The system was implemented within a ROS2 framework, utilizing an OAK-D Lite camera for depth perception and OpenCV for real-time computer vision processing.
-Additionally, a sweeper mechanism was installed using a servo motor controlled by a PCA9685 driver to remove interfering objects.  
+Our goal was to create an autonomous ground robot that travels along a straight hallway with two potential parking spaces—one on the left and one on the right. A red NO PARKING sign declares one spot as occupied, and the robot must determine which side is open, measure its distance to the AprilTag marking the correct parking spot, and perform a tight parallel-parking sequence.
+
+The system relies on the OAK-D Lite’s depth and rectified stereo output to estimate the true distance to an AprilTag using a median-over-area approach. The RGB stream is used to detect large red circular regions (NO PARKING signs) or, in ambiguous cases, a left-versus-right red-pixel imbalance.
+
+Once the spot is selected, the orchestrator executes a multi-step parking routine using the HAL, steering, reversing, and straightening until the robot is aligned within its chosen spot. A sweeper arm powered by a servo motor controlled via a PCA9685 removes debris blocking the parking path.
 
 ## Key Features
-* **:** [Brief description]
-* **Feature 2:** [Brief description]
+* **Vision-based sign detection:** Identifies red circular no-parking signs or left/right red distribution imbalance to determine which spot is closed via HSV mask. 
+* **AprilTag depth measurement:** [Computes tag distance using OAK-D rectified stereo depth, median-filtered for accuracy.
 * **Feature 3:** [Brief description]
 
 ## Core Objectives
