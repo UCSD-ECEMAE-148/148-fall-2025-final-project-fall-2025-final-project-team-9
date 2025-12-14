@@ -4,7 +4,7 @@
 ### Team Members
 * **Trew Hoffman** - Mechanical Engineering: Software - Class of 2026
 * **Manan Tuteja** - Aerospace Engineering: Hardware - Class of 2026
-* **Terri Tai** - Computer Engineering: Software - Class of 2025
+* **Terri Tai** - Computer Engineering: Software - Class of 2027
 * **Owen Hanenian** - Mechanical Engineering: Hardware - Class of 2026
 
 ---
@@ -82,7 +82,8 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
   * Ethernet SSH, wireless SSH
 * **CAD/Mechanical:**
     * *Custom Parts:*
-      * Sweeper arm
+      * Rotary Servo Arm using a DS3225MG Servo: https://a360.co/4ah9HVK
+      * PC9685 i2c to pwm driver assembly: https://a360.co/3MY30xW
       * Mount for OAK-D Lite
     * *Stock Parts:*
       * DC-DC converter
@@ -103,9 +104,17 @@ Once the spot is selected, the orchestrator executes a multi-step parking routin
 
 ***NOTE:*** Execution of this project's code requires using https://github.com/LiamBindle/PyVESC/blob/master/pyvesc/VESC/VESC.py with lines 40-43 removed.
 
-## 7. Future Improvements
-* Fix implementation of sweeper arm and obstacle detection in vision node that was not completed.
-* Utillize LiDAR for parking spot, sign, and obstacle detection rather than stereo depth and RGB with color masks. 
+## 7. Demonstration Videos
 
-## 8. Acknowledgments
+* **Full Parking Maneuver:** https://drive.google.com/file/d/13skkytyhFNDIrWCEbx_Y8rJ3Qe-3wAON/view?usp=drive_link
+* **Sign Detection and Decision Making:** https://drive.google.com/file/d/129XeshiFcHtZDFLckgNlD_xzgmjZ26v2/view?usp=drive_link
+* **Obstacle Removal System:** https://drive.google.com/file/d/1NbXFlpDSn8gsvdqW_95T_S3DBBavCneX/view?usp=drive_link
+
+## 8. Future Improvements
+* Fix implementation of sweeper arm and obstacle detection in vision node that was not completed.
+* Utillize LiDAR for parking spot, sign, and obstacle detection rather than stereo depth and RGB with color masks.
+* Park in all types of spots - slanted, perpendicular, reverse park, etc.
+
+## 9. Acknowledgments
 * Dr. Jack Silberman, Winston Chou
+* University of California, San Diego - MAE/ECE148 Course Staff
